@@ -12,12 +12,13 @@ CREATE TABLE [user] (
 
 -- 2. POSTS TABLE (For Keyset Pagination & Search)
 CREATE TABLE posts (
-    post_id     VARCHAR(50) PRIMARY KEY, -- UUID
+    post_id     VARCHAR(50) , -- UUID
     user_id     VARCHAR(50) NOT NULL,
     title       VARCHAR(255) NOT NULL,
     body        VARCHAR(MAX) NOT NULL,
     view_count  INT DEFAULT 0,
     created_at  DATETIME2 DEFAULT GETDATE(),
+    CONSTRAINT pk_posts_id PRIMARY KEY (post_id) ,
     CONSTRAINT FK_posts_user FOREIGN KEY (user_id) REFERENCES [user](id) ON DELETE CASCADE
 );
 
@@ -43,9 +44,6 @@ CREATE TABLE Reservation (
     CONSTRAINT FK_res_item FOREIGN KEY (item_id) REFERENCES Inventory(item_id)
 );
 
--- ============================================================================
--- INDEXING STRATEGY
--- ============================================================================
 
 -- USER LOOKUP INDEX
 CREATE NONCLUSTERED INDEX IX_user_fullname 
@@ -82,6 +80,29 @@ CREATE FULLTEXT INDEX ON posts (
     title LANGUAGE 1033,
     body LANGUAGE 1033
 )
-KEY INDEX PK__posts__3EDC1510 -- Uses the primary key constraint name on posts
+KEY INDEX pk_post_id -- Uses the primary key constraint name on posts
 ON search_posts;
 GO
+
+WITH MatchingUsers AS (
+    SELECT id AS user_id
+    FROM [user]
+    WHERE full_name LIKE '%' + @search_term + '%'
+),
+MatchingPosts AS (
+    SELECT p.post_id, p.title, p.user_id, KEY_TBL.RANK
+    FROM posts p
+    INNER JOIN FREETEXTTABLE(posts, (title, body), @search_term) AS KEY_TBL
+        ON p.post_id = KEY_TBL.[KEY]
+)
+SELECT DISTINCT 
+    p.post_id, 
+    p.title, 
+    u.full_name,
+    COALESCE(mp.RANK, 100) AS match_rank
+FROM posts p
+JOIN [user] u ON p.user_id = u.id
+LEFT JOIN MatchingPosts mp ON p.post_id = mp.post_id
+LEFT JOIN MatchingUsers mu ON p.user_id = mu.user_id
+WHERE mp.post_id IS NOT NULL OR mu.user_id IS NOT NULL
+ORDER BY match_rank DESC;
