@@ -20,3 +20,14 @@ CREATE TABLE posts (
     created_at  DATETIME2 DEFAULT GETDATE(),
     CONSTRAINT FK_posts_user FOREIGN KEY (user_id) REFERENCES [user](id) ON DELETE CASCADE
 );
+
+-- 3. INVENTORY TABLE (With Hard Engine Safety Checks)
+CREATE TABLE Inventory ( 
+    item_id        VARCHAR(50) PRIMARY KEY,
+    item_name      VARCHAR(150) UNIQUE NOT NULL,
+    stock          INT NOT NULL CHECK (stock >= 0),
+    reserved_stock INT NOT NULL DEFAULT 0,
+    created_at     DATETIME2 DEFAULT GETDATE(),
+    CONSTRAINT CHK_stock_bounds CHECK (reserved_stock <= stock AND reserved_stock >= 0)
+);
+
