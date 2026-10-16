@@ -43,36 +43,57 @@ CREATE TABLE Reservation (
     CONSTRAINT FK_res_item FOREIGN KEY (item_id) REFERENCES Inventory(item_id)
 );
 -- the indexing stratigie :
+-- 1. USER INDEX
+CREATE NONCLUSTERED INDEX IX_user_fullname 
+ON [user](full_name ) 
+INCLUDE ( id , avatar, role);
 
---we have to go step by step on each table to figre out what we most add and config ! 
+-- 2. KEYSET PAGINATION INDEX 
+-- it will make order by lighter (order by created_at disc post_id desc)
+CREATE NONCLUSTERED INDEX IX_posts_feed
+ON posts(created_at DESC, post_id DESC) 
+INCLUDE (title, user_id, view_count);
 
---USER TABLE  :
---we gonna do alot of search looking for name and password that matches then fetching all neccesser meta data about him so all we can add in non cluster index cuz the primary key exist here ! 
+-- 3. INVENTORY LOOKUP INDEX
+CREATE NONCLUSTERED INDEX IX_inventory_search 
+ON Inventory(item_name) 
+INCLUDE (item_id, stock, reserved_stock);
 
-CREATE NONCLUSTERED INDEX  search_user_idex on [user] (full_name , password ) 
-INCLUDE (id , full_name , avater ) ;
+-- 4. RESERVATION CLEANUP & FOREIGN KEY INDEXES (MODULE 4)
+CREATE NONCLUSTERED INDEX IX_reservation_cleanup 
+ON Reservation(state, expires_at) 
+INCLUDE (item_id, user_id);
 
---Posts indexing : 
---for sure we gonna do search in order to find a specifique post based on fulltextable methode So we need index for that !
+CREATE NONCLUSTERED INDEX IX_reservation_fk_user 
+ON Reservation(user_id);
 
-if not exists ( select * from sys.fulltext_catalogs where name ='search_posts')
-create fulltext catalog search_posts as default ;
+CREATE NONCLUSTERED INDEX IX_reservation_fk_item 
+ON Reservation(item_id);
 
+-- 5. FULL-TEXT INDEX VIA OPTION A (CTEs) //Option B is (indexed view):
+IF NOT EXISTS (SELECT * FROM sys.fulltext_catalogs WHERE name = 'search_posts')
+    CREATE FULLTEXT CATALOG search_posts AS DEFAULT;
 GO
 
-CREATE FULLTEXT INDEX ON post ( 
-      title LANGUAGE 1033 ,
-      body LANGUAGE 1033 
+WITH MatchingUsers AS (
+    SELECT id AS user_id
+    FROM [user]
+    WHERE full_name LIKE '%' + @search_term + '%'
+),
+MatchingPosts AS (
+    SELECT p.post_id, p.title, p.user_id, KEY_TBL.RANK
+    FROM posts p
+    INNER JOIN FREETEXTTABLE(posts, (title, body), @search_term) AS KEY_TBL
+        ON p.post_id = KEY_TBL.[KEY]
 )
-KEY INDEX PK_posts
-with stoplist = system ;
--- I Wanted to add full_name of the user but it seems like impossible cuz i have in that table only user_id and in the search i cant search for a user_id cuz am looking for text that matches a user name , So i dont know maybe like running a cte and main query each one handle a side then joining both results ?!
-
---Inventory Items Indexing :
-
---So here we basicly we gonna be looking for item name and stock and reserverd stock based on item name : 
-
-CREATE NONCLUSTERED INDEX search_item_index on [inventory] (item_name , item_id) 
-include (item_name , item_id , stock , reserved_stock) ;
-
---this indexes will slow down the writting process but helps in reading which will face match more load in production based on my thinking 
+SELECT DISTINCT 
+    p.post_id, 
+    p.title, 
+    u.full_name,
+    COALESCE(mp.RANK, 100) AS match_rank
+FROM posts p
+JOIN [user] u ON p.user_id = u.id
+LEFT JOIN MatchingPosts mp ON p.post_id = mp.post_id
+LEFT JOIN MatchingUsers mu ON p.user_id = mu.user_id
+WHERE mp.post_id IS NOT NULL OR mu.user_id IS NOT NULL
+ORDER BY match_rank DESC;
