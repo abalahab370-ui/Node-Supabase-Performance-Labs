@@ -31,3 +31,14 @@ CREATE TABLE Inventory (
     CONSTRAINT CHK_stock_bounds CHECK (reserved_stock <= stock AND reserved_stock >= 0)
 );
 
+-- 4. RESERVATION TABLE (For Concurrency Holds)
+CREATE TABLE Reservation (
+    reservation_id VARCHAR(50) PRIMARY KEY,
+    user_id        VARCHAR(50) NOT NULL,
+    item_id        VARCHAR(50) NOT NULL,
+    state          VARCHAR(20) NOT NULL DEFAULT 'HELD', -- 'HELD', 'CONFIRMED', 'EXPIRED'
+    created_at     DATETIME2 DEFAULT GETDATE(),
+    expires_at     DATETIME2 NOT NULL,
+    CONSTRAINT FK_res_user FOREIGN KEY (user_id) REFERENCES [user](id),
+    CONSTRAINT FK_res_item FOREIGN KEY (item_id) REFERENCES Inventory(item_id)
+);
