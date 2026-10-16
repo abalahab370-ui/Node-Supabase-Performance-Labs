@@ -9,3 +9,14 @@ CREATE TABLE [user] (
     created_at  DATETIME2 DEFAULT GETDATE(),
     last_seen   DATETIME2 DEFAULT GETDATE()
 );
+
+-- 2. POSTS TABLE (For Keyset Pagination & Search)
+CREATE TABLE posts (
+    post_id     VARCHAR(50) PRIMARY KEY, -- UUID
+    user_id     VARCHAR(50) NOT NULL,
+    title       VARCHAR(255) NOT NULL,
+    body        VARCHAR(MAX) NOT NULL,
+    view_count  INT DEFAULT 0,
+    created_at  DATETIME2 DEFAULT GETDATE(),
+    CONSTRAINT FK_posts_user FOREIGN KEY (user_id) REFERENCES [user](id) ON DELETE CASCADE
+);
