@@ -56,6 +56,7 @@ CREATE NONCLUSTERED INDEX IX_posts_feed
 ON posts(created_at DESC, post_id DESC) 
 INCLUDE (title, user_id, view_count);
 
+CREATE NONCLUSTERED INDEX IX_posts_user_id on [posts](user_id) ;
 -- INVENTORY LOOKUP INDEX
 CREATE NONCLUSTERED INDEX IX_inventory_search 
 ON Inventory(item_name) 
