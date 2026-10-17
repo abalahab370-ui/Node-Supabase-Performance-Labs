@@ -7,7 +7,8 @@ CREATE TABLE [user] (
     role        INT DEFAULT 2000,
     avatar      VARCHAR(500) NULL,
     created_at  DATETIME2 DEFAULT GETDATE(),
-    last_seen   DATETIME2 DEFAULT GETDATE()
+    last_seen   DATETIME2 DEFAULT GETDATE(),
+    CONSTRAINT pk_user_id PRIMARY KEY (id)
 );
 
 -- 2. POSTS TABLE (For Keyset Pagination & Search)
@@ -71,10 +72,11 @@ ON Reservation(user_id);
 CREATE NONCLUSTERED INDEX IX_reservation_fk_item 
 ON Reservation(item_id);
 
--- FULL-TEXT SEARCH SETUP (OPTION A PREPARATION)
+-- FULL-TEXT SEARCH SETUP (OPTION A PREPARATION) : 
+-- FOR POSTS  :
 IF NOT EXISTS (SELECT * FROM sys.fulltext_catalogs WHERE name = 'search_posts')
     CREATE FULLTEXT CATALOG search_posts AS DEFAULT;
-GO
+
 
 CREATE FULLTEXT INDEX ON posts (
     title LANGUAGE 1033,
@@ -82,27 +84,59 @@ CREATE FULLTEXT INDEX ON posts (
 )
 KEY INDEX pk_post_id -- Uses the primary key constraint name on posts
 ON search_posts;
-GO
 
-WITH MatchingUsers AS (
-    SELECT id AS user_id
-    FROM [user]
-    WHERE full_name LIKE '%' + @search_term + '%'
-),
-MatchingPosts AS (
-    SELECT p.post_id, p.title, p.user_id, KEY_TBL.RANK
-    FROM posts p
-    INNER JOIN FREETEXTTABLE(posts, (title, body), @search_term) AS KEY_TBL
-        ON p.post_id = KEY_TBL.[KEY]
+
+--FOR USERS :
+IF NOT EXISTS (SELECT * FROM sys.fulltext_catalogs WHERE name = 'search_user')
+    CREATE FULLTEXT CATALOG search_user AS DEFAULT;
+
+
+CREATE FULLTEXT INDEX ON posts (
+    full_name LANGUAGE 1033
 )
-SELECT DISTINCT 
+KEY INDEX pk_user_id -- Uses the primary key constraint name on posts
+ON search_posts;
+
+
+--searching methode ( the most brillant one i have created so far !)
+
+DECLARE @searchTerm NVARCHAR(200) = N'your_search_term';
+DECLARE @offset INT = 0;
+DECLARE @limit INT = 10;
+DECLARE @topN INT = @offset + @limit;
+IF @topN > 500 SET @topN = 500;
+
+WITH MatchedFeed AS (
+    SELECT post_id, SUM(relevance_score) AS relevance_score
+    FROM (
+        -- 1. Post Title & Body FTS
+        SELECT 
+            COALESCE(ft_t.[KEY], ft_b.[KEY]) AS post_id,
+            (ISNULL(ft_t.RANK, 0) * 10) + ISNULL(ft_b.RANK, 0) AS relevance_score
+        FROM FREETEXTTABLE(posts, title, @searchTerm, @topN) AS ft_t
+        FULL JOIN FREETEXTTABLE(posts, body, @searchTerm, @topN) AS ft_b 
+            ON ft_t.[KEY] = ft_b.[KEY]
+
+        UNION ALL
+
+        -- 2. User Full Name FTS (mapped to their posts)
+        SELECT 
+            p.post_id,
+            ft_u.RANK * 10 AS relevance_score
+        FROM FREETEXTTABLE([user], full_name, @searchTerm, @topN) AS ft_u
+        JOIN posts p ON p.user_id = ft_u.[KEY]
+    ) combined
+    GROUP BY post_id
+)
+SELECT 
     p.post_id, 
     p.title, 
+    p.body, 
     u.full_name,
-    COALESCE(mp.RANK, 100) AS match_rank
-FROM posts p
-JOIN [user] u ON p.user_id = u.id
-LEFT JOIN MatchingPosts mp ON p.post_id = mp.post_id
-LEFT JOIN MatchingUsers mu ON p.user_id = mu.user_id
-WHERE mp.post_id IS NOT NULL OR mu.user_id IS NOT NULL
-ORDER BY match_rank DESC;
+    f.relevance_score
+FROM MatchedFeed f
+INNER JOIN posts p ON f.post_id = p.post_id
+INNER JOIN [user] u ON p.user_id = u.id
+ORDER BY f.relevance_score DESC, p.created_at DESC
+OFFSET @offset ROWS 
+FETCH NEXT @limit ROWS ONLY;
