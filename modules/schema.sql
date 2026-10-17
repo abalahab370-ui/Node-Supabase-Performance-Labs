@@ -96,7 +96,8 @@ CREATE FULLTEXT INDEX ON posts (
     full_name LANGUAGE 1033
 )
 KEY INDEX pk_user_id -- Uses the primary key constraint name on posts
-ON search_posts;
+ON search_posts
+with stoplist = system ;
 
 
 --searching methode ( the most brillant one i have created so far !)
