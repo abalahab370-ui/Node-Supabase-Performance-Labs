@@ -1,4 +1,7 @@
 --here am gonna putting a generale design of the the database design module (gonna design it by myself then correcting it and improving it using Ai model this is how you gonna trully learn )
+--well u can notice that this is ms sql server syntax not postgresql , i feel more comfortable with it cuz i master it better then postgresql , So all u have to do is asking a AI model to write the same code in postgresql for sure the FREETEXTABLE wont availbe So instead ask him to use Stored Search Vectors and do modification to the design ( probably will drop some indexes)
+--a another note is that the companies does not use these kind of searches )=) , they use another softwers , advance onces that are made only for these tasks like : OpenSearch )=)
+
 -- 1. USERS TABLE
 CREATE TABLE [user] (
     id          VARCHAR(50) PRIMARY KEY, -- UUID
