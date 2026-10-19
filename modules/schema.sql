@@ -4,11 +4,13 @@
 
 -- 1. USERS TABLE
 CREATE TABLE [user] (
-    id          VARCHAR(50) PRIMARY KEY, -- UUID
+    id          VARCHAR(50) , -- UUID
     full_name   VARCHAR(100) UNIQUE NOT NULL,
+    email       VARCHAR(30) NULL ,
     password    VARCHAR(255) NULL,
     role        INT DEFAULT 2000,
     avatar      VARCHAR(500) NULL,
+    googleId    VARCHAR(30) NULL ,
     created_at  DATETIME2 DEFAULT GETDATE(),
     last_seen   DATETIME2 DEFAULT GETDATE(),
     CONSTRAINT pk_user_id PRIMARY KEY (id)

@@ -4,25 +4,24 @@ const jwt = require("jsonwebtoken");
 const refreshToken = (req, res) => {
   try {
     const authHeader = req.headers.authorization || req.headers.Authorization;
+    const token = req.cookies?.jwt ||
+      (authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : null);
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!token) {
       return res.status(401).json({ message: "Refresh token is required." });
     }
-
-    const token = authHeader.split(" ")[1];
-    let userInfo = {};
 
     jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
       if (err) {
         return res.status(401).json({ message: "Token is expired or invalid" });
       }
 
-      userInfo = decoded?.userInfo || decoded;
+      const userInfo = decoded?.userInfo || decoded;
 
       const accessToken = jwt.sign(
-        userInfo,
+        { userInfo },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: 4 * 60 * 60 }
+        { expiresIn: "2h" }
       );
 
       return res.status(200).json({ accessToken });
