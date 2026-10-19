@@ -6,7 +6,7 @@ const cookieOptions = require("../../config/authCookieOptions");
 
 const registerHandler = async (req, res) => {
   try {
-    const { full_name, password, email } = req.body || {};
+    const { full_name, password } = req.body || {};
 
     // 1. Input Validation
     if (!full_name || !password) {
@@ -21,12 +21,12 @@ const registerHandler = async (req, res) => {
 
     const id = uuid();
 
-    // 3. Insert User into PostgreSQL
+    // 3. Insert User into PostgreSQL (email stays NULL)
     const result = await query(
-      `INSERT INTO "user" (id, full_name, email, password)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO "user" (id, full_name, password)
+       VALUES ($1, $2, $3)
        RETURNING id, full_name, email, avatar, role`,
-      [id, full_name, email || null, hashedPassword]
+      [id, full_name, hashedPassword]
     );
 
     const user = result.rows[0];
