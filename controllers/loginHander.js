@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const query  = require("../../config/dbConnection");
-const cookieOptions = require("../../config/authCookieOptions");
+const query  = require("../config/dbConnection");
+const cookieOptions = require("../config/authCookieOptions");
 
 const loginHandler = async (req, res) => {
   try {

@@ -1,4 +1,4 @@
-const cookieOptions = require("../../config/authCookieOptions");
+const cookieOptions = require("../config/authCookieOptions");
 
 const logoutHandler = (req, res) => {
   try {

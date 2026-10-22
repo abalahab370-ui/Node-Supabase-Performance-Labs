@@ -2,18 +2,16 @@
 const allowRoles = (...allowedRoles) => {
   return (req, res, next) => {
     try {
-      const userRoles = req.userInfo?.roles || [];
-      const normalizedRoles = Array.isArray(userRoles)
-        ? userRoles
-        : Object.values(userRoles);
-
-      const isAllowed = normalizedRoles.some((role) => allowedRoles.includes(role));
+      const userRole = Number(req.userInfo?.role);
+      const isAllowed =
+        Number.isFinite(userRole) &&
+        allowedRoles.some((role) => Number(role) === userRole);
 
       if (isAllowed) {
         return next();
       }
 
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(403).json({ message: "Forbidden" });
     } catch (err) {
       console.log(`Sir we have a problem in verifying roles: ${err}`);
       return res.status(500).json({ message: "Server error while checking roles" });

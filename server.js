@@ -13,6 +13,7 @@ app.use(express.json());
 
 //feed route :
 app.use("/api/v1/search" , require("./routes/posts"));
+app.use("/api/v1/auth", require("./routes/main"));
 
 // 404 handler (must be registered after all routes) :
 app.use((req, res) => {
@@ -23,5 +24,5 @@ app.use((req, res) => {
 });
 
 app.listen( PORT  , () => {
-      console.log ("Server is up and listning in port : ${PORT}") ;
+      console.log(`Server is up and listening on port: ${PORT}`);
 })
