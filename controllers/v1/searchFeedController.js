@@ -59,7 +59,7 @@ async function searchPosts(req, res) {
         `;
 
         const queryParams = [searchTerm, limit, safeOffset];
-        const { rows } = await pool.query(rawQuery, queryParams);
+        const { rows } = await query(rawQuery, queryParams);
 
         // Calculate execution time for your diagnostic UI panel
         const elapsed = process.hrtime(startTime);
