@@ -4,12 +4,15 @@ async function searchPosts(req, res) {
     const startTime = process.hrtime();
     
     try {
-        const searchTerm = req.query.q || '';
-        const limit = parseInt(req.query.limit) || 10;
-        const offset = parseInt(req.query.offset) || 0;
+      // Strict Clamping for Limit (Min: 1, Max: 50 items per request)
+      const rawLimit = parseInt(req.query.limit, 10);
+      const limit =isNaN(rawLimit) ? 10 : Math.min(Math.max(rawLimit, 1), 50);
 
-        // Safety cap on offset to prevent heavy deep scans
-        const safeOffset = offset > 500 ? 500 : offset;
+      // Strict Clamping for Offset (Min: 0, Hard Max ceiling to prevent deep offset scans)
+      const rawOffset = parseInt(req.query.offset, 10);
+      const offset = isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
+      const safeOffset = Math.min(offset, 500); // Never allow an offset past 500
+
 
         // Your exact optimized Postgres FTS search query with CTEs
         const rawQuery = `
