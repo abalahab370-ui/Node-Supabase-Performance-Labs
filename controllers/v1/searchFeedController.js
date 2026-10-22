@@ -4,17 +4,19 @@ async function searchPosts(req, res) {
     const startTime = process.hrtime();
     
     try {
-      // Strict Clamping for Limit (Min: 1, Max: 50 items per request)
-      const rawLimit = parseInt(req.query.limit, 10);
-      const limit =isNaN(rawLimit) ? 10 : Math.min(Math.max(rawLimit, 1), 50);
+        // Sanitize Search Term
+        const searchTerm = typeof req.query.q === 'string' ? req.query.q.trim() : '';
 
-      // Strict Clamping for Offset (Min: 0, Hard Max ceiling to prevent deep offset scans)
-      const rawOffset = parseInt(req.query.offset, 10);
-      const offset = isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
-      const safeOffset = Math.min(offset, 500); // Never allow an offset past 500
+        // Strict Clamping for Limit (Min: 1, Max: 50 items per request)
+        const rawLimit = parseInt(req.query.limit, 10);
+        const limit = isNaN(rawLimit) ? 10 : Math.min(Math.max(rawLimit, 1), 50);
 
+        // Strict Clamping for Offset (Min: 0, Hard Max ceiling of 500 to prevent deep scans)
+        const rawOffset = parseInt(req.query.offset, 10);
+        const offset = isNaN(rawOffset) ? 0 : Math.max(rawOffset, 0);
+        const safeOffset = Math.min(offset, 500);
 
-        // Your exact optimized Postgres FTS search query with CTEs
+        // optimized Postgres FTS search query with CTEs
         const rawQuery = `
             WITH params AS (
                 SELECT $1 AS search_term
@@ -56,14 +58,14 @@ async function searchPosts(req, res) {
             LIMIT $2 OFFSET $3;
         `;
 
-        const params = [searchTerm, limit, safeOffset];
-        const { rows } = await pool.query(rawQuery, params);
+        const queryParams = [searchTerm, limit, safeOffset];
+        const { rows } = await pool.query(rawQuery, queryParams);
 
         // Calculate execution time for your diagnostic UI panel
         const elapsed = process.hrtime(startTime);
         const executionTimeMs = (elapsed[0] * 1000 + elapsed[1] / 1e6).toFixed(2);
 
-        // Clean up the query text slightly for clean UI rendering (removes excessive newlines/spaces)
+        // Clean up query text for clean UI rendering
         const cleanedQueryText = rawQuery.trim().replace(/\s+/g, ' ');
 
         return res.status(200).json({
@@ -71,8 +73,8 @@ async function searchPosts(req, res) {
             meta: {
                 executionTimeMs: `${executionTimeMs} ms`,
                 strategy: 'PostgreSQL Stored Search Vectors + GIN Indexing + CTE Ranking',
-                executedQuery: cleanedQueryText, // <--- Sent to frontend for UI inspection!
-                parameters: {
+                executedQuery: cleanedQueryText,
+                validatedParams: {
                     searchTerm,
                     limit,
                     offset: safeOffset
