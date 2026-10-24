@@ -16,4 +16,4 @@ const query = async  ( text , params ) => {
       return await pool.query(text , params) ;
 }
 
-module.exports = query  ;
+module.exports = { pool , query }  ;

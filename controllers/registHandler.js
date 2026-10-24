@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const query = require("../config/dbConnection");
+const { query } = require("../config/dbConnection");
 const uuid = require("uuid").v4;
 const cookieOptions = require("../config/authCookieOptions");
 

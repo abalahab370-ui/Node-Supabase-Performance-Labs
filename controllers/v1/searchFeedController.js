@@ -1,4 +1,4 @@
-const query = require('../../config/dbConnection'); // Your PostgreSQL connection pool
+const { query } = require('../../config/dbConnection');
 
 async function searchPosts(req, res) {
     const startTime = process.hrtime();
