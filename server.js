@@ -11,8 +11,10 @@ app.use(cookieParser());
 app.use(express.json());
 
 //feed route :
-app.use("/api/v1/search" , require("./routes/posts"));
 app.use("/api/v1/auth", require("./routes/main"));
+app.use("/api/v1/search" , require("./routes/posts"));
+app.use('/api/v1/concurrency', require('./routes/concurrency'));
+
 
 // 404 handler (must be registered after all routes) :
 app.use((req, res) => {
