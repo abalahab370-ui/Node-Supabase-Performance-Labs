@@ -1,29 +1,28 @@
-require("dotenv").config() ;
+require("dotenv").config();
 
-const express = require("express") ;
-const app = express() ;
-const PORT = process.env.PORT || 5000 ;
+const express = require("express");
+const app = express();
+const PORT = process.env.PORT || 5000;
 const cookieParser = require("cookie-parser");
-const client = require("./config/rdConnection") ; 
+const rateLimiter = require("./controllers/rateLimiter.Js");
+const verifyJWT = require("./middleware/verifyJWT");
 
-//Stander middlewares :
+app.set("trust proxy", 1);
 app.use(cookieParser());
 app.use(express.json());
+app.use("/api/v1", rateLimiter);
 
-//feed route :
 app.use("/api/v1/auth", require("./routes/main"));
-app.use("/api/v1/search" , require("./routes/posts"));
-app.use('/api/v1/concurrency', require('./routes/concurrency'));
+app.use("/api/v1/search", verifyJWT, require("./routes/posts"));
+app.use("/api/v1/concurrency", verifyJWT, require("./routes/concurrency"));
 
-
-// 404 handler (must be registered after all routes) :
 app.use((req, res) => {
-      res.status(404).json({
-            success: false,
-            message: "Route not found"
-      });
+  res.status(404).json({
+    success: false,
+    message: "Route not found"
+  });
 });
 
-app.listen( PORT  , () => {
-      console.log(`Server is up and listening on port: ${PORT}`);
-})
+app.listen(PORT, () => {
+  console.log(`Server is up and listening on port: ${PORT}`);
+});

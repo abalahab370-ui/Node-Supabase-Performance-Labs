@@ -18,6 +18,8 @@ const initRedis = async () => {
       }
 }
 
-initRedis() ;
+initRedis().catch((err) => {
+      console.error('Redis connection failed:', err);
+}) ;
 
 module.exports = client ;
