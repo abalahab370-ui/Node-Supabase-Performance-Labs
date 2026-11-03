@@ -96,6 +96,7 @@ input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgb
 .search-form { display: grid; gap: 8px; margin-bottom: 20px; }
 .search-input-label { color: var(--muted); }
 .search-controls { display: grid; grid-template-columns: 1fr 116px auto; gap: 10px; }
+.inventory-search-controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
 .limit-control { align-content: center; }
 .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
 .metric { min-height: 65px; display: flex; flex-direction: column; justify-content: center; gap: 7px; border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; background: #0d1628; }

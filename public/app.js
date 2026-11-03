@@ -26,6 +26,8 @@ const ui = {
   searchPanel: byId("searchPanel"),
   reservationPanel: byId("reservationPanel"),
   conceptNavigator: byId("conceptNavigator"),
+  inventoryConceptNavigator: byId("inventoryConceptNavigator"),
+  inventoryPresetMessage: byId("inventoryPresetMessage"),
   searchForm: byId("searchForm"),
   searchQuery: byId("searchQuery"),
   searchLimit: byId("searchLimit"),
@@ -306,6 +308,25 @@ ui.conceptNavigator.addEventListener("click", (event) => {
   ui.searchLimit.value = "10";
   ui.searchForm.requestSubmit();
 });
+function setActiveInventoryChip(activeChip) {
+  ui.inventoryConceptNavigator.querySelectorAll("[data-inventory-preset-name]").forEach((chip) => {
+    const isActive = chip === activeChip;
+    chip.classList.toggle("active", isActive);
+    chip.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+ui.inventoryConceptNavigator.addEventListener("click", (event) => {
+  const chip = event.target.closest("button[data-inventory-preset-name]");
+  if (!chip) return;
+  if (!chip.dataset.itemId) {
+    setMessage(ui.inventoryPresetMessage, "This preset is missing its inventory item ID.", true);
+    return;
+  }
+  ui.itemId.value = chip.dataset.itemId;
+  setActiveInventoryChip(chip);
+  setMessage(ui.inventoryPresetMessage, `Selected ${chip.dataset.inventoryPresetName} (${chip.dataset.itemId}). Run the stress test when ready.`);
+});
 ui.searchQuery.addEventListener("input", () => {
   ui.conceptNavigator.querySelectorAll(".concept-chip").forEach((chip) => {
     const isActive = chip.dataset.searchQuery === ui.searchQuery.value.trim();
@@ -331,15 +352,20 @@ function renderReservationResults(results) {
     const userCell = document.createElement("td");
     const statusCell = document.createElement("td");
     const outcomeCell = document.createElement("td");
+    const stockCell = document.createElement("td");
+    const reservedStockCell = document.createElement("td");
     const timeCell = document.createElement("td");
+    const inventoryState = result.body.data?.inventoryState;
     userCell.textContent = result.userId;
     statusCell.textContent = String(result.status);
     const isStockRejection = result.status === 400 &&
       result.body.error?.toLowerCase().includes("insufficient stock");
     statusCell.className = result.status === 201 ? "status-success" : isStockRejection ? "status-rejected" : "status-failed";
     outcomeCell.textContent = result.status === 201 ? "Reservation secured" : result.body.error || result.body.message || "Request failed.";
+    stockCell.textContent = inventoryState?.totalStock ?? "—";
+    reservedStockCell.textContent = inventoryState?.newReservedStock ?? "—";
     timeCell.textContent = result.body.meta?.executionTimeMs || "—";
-    row.append(userCell, statusCell, outcomeCell, timeCell);
+    row.append(userCell, statusCell, outcomeCell, stockCell, reservedStockCell, timeCell);
     ui.reservationResults.append(row);
   }
 }

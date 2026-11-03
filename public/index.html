@@ -61,7 +61,7 @@
 
       <nav class="tabs" aria-label="Diagnostic modules" role="tablist">
         <button class="tab active" id="searchTab" role="tab" aria-selected="true" aria-controls="searchPanel" type="button"><span class="tab-number">01</span> Search &amp; pagination</button>
-        <button class="tab" id="reservationTab" role="tab" aria-selected="false" aria-controls="reservationPanel" type="button"><span class="tab-number">02</span> Concurrency &amp; reservations</button>
+        <button class="tab" id="reservationTab" role="tab" aria-selected="false" aria-controls="reservationPanel" type="button"><span class="tab-number">02</span> Inventory &amp; reservations</button>
       </nav>
 
       <section class="workspace">
@@ -149,11 +149,73 @@
 
         <section id="reservationPanel" class="module-panel" role="tabpanel" aria-labelledby="reservationTab" hidden>
           <div class="section-heading">
-            <div><p class="eyebrow">MODULE 03 / 04</p><h2>Reservation stress test</h2><p class="muted">Send parallel requests and observe stock checks and row-level transaction locking.</p></div>
+            <div><p class="eyebrow">MODULE 02</p><h2>Inventory &amp; reservation management</h2><p class="muted">Choose an inventory preset, then observe stock checks and row-level transaction locking.</p></div>
             <span class="pill">ACID · FOR UPDATE</span>
           </div>
+          <section id="inventoryConceptNavigator" class="concept-navigator" aria-labelledby="inventoryConceptNavigatorTitle">
+            <h3 id="inventoryConceptNavigatorTitle">Inventory Concept Navigator &amp; Search Presets</h3>
+            <div class="concept-categories">
+              <section class="concept-category">
+                <h4>Database &amp; NVMe</h4>
+                <div class="concept-chips">
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Enterprise NVMe SSD 3.2TB U.2" data-item-id="inv_1" aria-pressed="false">Enterprise NVMe SSD 3.2TB U.2</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Dual PCIe 4.0 RAID Controller Card" data-item-id="inv_2" aria-pressed="false">Dual PCIe 4.0 RAID Controller Card</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Storage Array Shelf 24-Bay 2U" data-item-id="inv_3" aria-pressed="false">Storage Array Shelf 24-Bay 2U</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Optane Persistent Memory Module 256GB" data-item-id="inv_4" aria-pressed="false">Optane Persistent Memory Module 256GB</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="12TB SAS 12Gb/s 10K RPM Enterprise HDD" data-item-id="inv_5" aria-pressed="false">12TB SAS 12Gb/s 10K RPM Enterprise HDD</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="PCIe Gen5 M.2 Carrier Board" data-item-id="inv_6" aria-pressed="false">PCIe Gen5 M.2 Carrier Board</button>
+                </div>
+              </section>
+              <section class="concept-category">
+                <h4>Networking</h4>
+                <div class="concept-chips">
+                  <button class="concept-chip" type="button" data-inventory-preset-name="100GbE QSFP28 Network Interface Card" data-item-id="inv_7" aria-pressed="false">100GbE QSFP28 Network Interface Card</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Managed 48-Port Layer 3 Switch" data-item-id="inv_8" aria-pressed="false">Managed 48-Port Layer 3 Switch</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Managed 24-Port PoE+ Gigabit Switch" data-item-id="inv_9" aria-pressed="false">Managed 24-Port PoE+ Gigabit Switch</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Fiber Optic Transceiver 100G BASE-SR4" data-item-id="inv_10" aria-pressed="false">Fiber Optic Transceiver 100G BASE-SR4</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Redundant Power Supply Unit 800W" data-item-id="inv_11" aria-pressed="false">Redundant Power Supply Unit 800W</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Cat6A Shielded Ethernet Cable 25ft" data-item-id="inv_12" aria-pressed="false">Cat6A Shielded Ethernet Cable 25ft</button>
+                </div>
+              </section>
+              <section class="concept-category">
+                <h4>Compute &amp; Servers</h4>
+                <div class="concept-chips">
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Dual-Socket 2U Rackmount Server Chassis" data-item-id="inv_13" aria-pressed="false">Dual-Socket 2U Rackmount Server Chassis</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="64-Core Server Processor 3.1GHz" data-item-id="inv_14" aria-pressed="false">64-Core Server Processor 3.1GHz</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Server DDR5 Registered ECC RAM 64GB" data-item-id="inv_15" aria-pressed="false">Server DDR5 Registered ECC RAM 64GB</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="1U Rackmount Node.js API Gateway Appliance" data-item-id="inv_16" aria-pressed="false">1U Rackmount Node.js API Gateway Appliance</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Server CPU Liquid Cooling Kit 2U" data-item-id="inv_17" aria-pressed="false">Server CPU Liquid Cooling Kit 2U</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Server DDR4 ECC Registered RAM 32GB" data-item-id="inv_18" aria-pressed="false">Server DDR4 ECC Registered RAM 32GB</button>
+                </div>
+              </section>
+              <section class="concept-category">
+                <h4>Security &amp; HSM</h4>
+                <div class="concept-chips">
+                  <button class="concept-chip" type="button" data-inventory-preset-name="PCIe Hardware Security Module (HSM)" data-item-id="inv_19" aria-pressed="false">PCIe Hardware Security Module (HSM)</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Hardware OAuth2 FIDO2 Passkey Token" data-item-id="inv_20" aria-pressed="false">Hardware OAuth2 FIDO2 Passkey Token</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Network Security Firewall Appliance" data-item-id="inv_21" aria-pressed="false">Network Security Firewall Appliance</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Encrypted USB Flash Drive 128GB" data-item-id="inv_22" aria-pressed="false">Encrypted USB Flash Drive 128GB</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Smart Card Reader USB-C" data-item-id="inv_23" aria-pressed="false">Smart Card Reader USB-C</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="1U Hardware SSL/TLS Offloader" data-item-id="inv_24" aria-pressed="false">1U Hardware SSL/TLS Offloader</button>
+                </div>
+              </section>
+              <section class="concept-category">
+                <h4>Workstations &amp; Infrastructure</h4>
+                <div class="concept-chips">
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Developer Workstation Mini-PC 32GB" data-item-id="inv_25" aria-pressed="false">Developer Workstation Mini-PC 32GB</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="UltraWide 34-Inch Developer Monitor 4K" data-item-id="inv_26" aria-pressed="false">UltraWide 34-Inch Developer Monitor 4K</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Ergonomic Mechanical Keyboard (Hot-Swap)" data-item-id="inv_27" aria-pressed="false">Ergonomic Mechanical Keyboard (Hot-Swap)</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="USB-C Dual 4K Thunderbolt 4 Dock" data-item-id="inv_28" aria-pressed="false">USB-C Dual 4K Thunderbolt 4 Dock</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="Uninterruptible Power Supply (UPS) 1500VA" data-item-id="inv_29" aria-pressed="false">Uninterruptible Power Supply (UPS) 1500VA</button>
+                  <button class="concept-chip" type="button" data-inventory-preset-name="19-Inch 42U Server Rack Cabinet" data-item-id="inv_30" aria-pressed="false">19-Inch 42U Server Rack Cabinet</button>
+                </div>
+              </section>
+            </div>
+          </section>
+          <div id="inventoryPresetMessage" class="notice" role="status">Choose an inventory preset to fill the item ID.</div>
+          <h3>Reservation Stress Test</h3>
           <form id="reservationForm" class="reservation-form">
-            <label>Inventory item ID<input id="itemId" value="item-001" required></label>
+            <label>Inventory item ID<input id="itemId" value="inv_1" required></label>
             <label>Quantity per request<input id="quantity" type="number" value="1" min="1" step="1" required></label>
             <label>Concurrent users
               <select id="batchSize"><option value="1">1 user</option><option value="2">2 users</option><option value="3">3 users</option><option value="4">4 users</option><option value="5" selected>5 users</option></select>
@@ -164,8 +226,8 @@
           <div id="reservationMessage" class="notice" role="status">Connect with a valid access token before running the test.</div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>User ID</th><th>HTTP status</th><th>Outcome</th><th>DB time</th></tr></thead>
-              <tbody id="reservationResults"><tr><td class="empty-cell" colspan="4">Reservation results will appear here.</td></tr></tbody>
+              <thead><tr><th>User ID</th><th>HTTP status</th><th>Outcome</th><th>Total stock</th><th>Reserved stock</th><th>DB time</th></tr></thead>
+              <tbody id="reservationResults"><tr><td class="empty-cell" colspan="6">Reservation results will appear here.</td></tr></tbody>
             </table>
           </div>
         </section>
