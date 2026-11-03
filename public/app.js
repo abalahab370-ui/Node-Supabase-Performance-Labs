@@ -3,7 +3,7 @@ const defaultApiOrigin = window.location.port === "5501"
   : window.location.origin;
 const state = {
   accessToken: localStorage.getItem("diagnosticAccessToken") || "",
-  apiOrigin: localStorage.getItem("diagnosticApiOrigin") || defaultApiOrigin,
+  apiOrigin: defaultApiOrigin,
   authMode: "login",
   search: { query: "", limit: 10, offset: 0, totalCount: 0 }
 };
@@ -14,8 +14,6 @@ const ui = {
   authMessage: byId("authMessage"),
   googleMessage: byId("googleMessage"),
   accessToken: byId("accessToken"),
-  apiOrigin: byId("apiOrigin"),
-  saveApiOrigin: byId("saveApiOrigin"),
   signOut: byId("signOut"),
   loginForm: byId("loginForm"),
   signInMode: byId("signInMode"),
@@ -49,8 +47,6 @@ const ui = {
   metadata: byId("metadata"),
   inspectorLabel: byId("inspectorLabel")
 };
-
-ui.apiOrigin.value = state.apiOrigin;
 
 function setMessage(element, message, isError = false) {
   element.textContent = message;
@@ -145,28 +141,6 @@ ui.signInMode.addEventListener("click", () => setAuthMode("login"));
 ui.registerMode.addEventListener("click", () => setAuthMode("register"));
 ui.signOut.addEventListener("click", () => setAccessToken(""));
 
-ui.saveApiOrigin.addEventListener("click", () => {
-  const origin = ui.apiOrigin.value.trim().replace(/\/+$/, "");
-  if (origin) {
-    try {
-      const parsed = new URL(origin);
-      if (!["http:", "https:"].includes(parsed.protocol) || parsed.pathname !== "/" || parsed.search || parsed.hash) {
-        throw new Error("Enter only the backend origin, such as http://127.0.0.1:5000.");
-      }
-      state.apiOrigin = parsed.origin;
-    } catch (error) {
-      setMessage(ui.authMessage, error.message || "Enter a valid backend API origin.", true);
-      return;
-    }
-  } else {
-    state.apiOrigin = "";
-  }
-  localStorage.setItem("diagnosticApiOrigin", state.apiOrigin);
-  ui.apiOrigin.value = state.apiOrigin;
-  setMessage(ui.authMessage, `Using backend API: ${state.apiOrigin || window.location.origin}`);
-  initializeGoogleSignIn();
-});
-
 function loadGoogleIdentityServices() {
   if (window.google?.accounts?.id) return Promise.resolve();
   if (window.googleIdentityScriptPromise) return window.googleIdentityScriptPromise;
@@ -198,7 +172,7 @@ async function initializeGoogleSignIn() {
       callback: async ({ credential }) => {
         setMessage(ui.googleMessage, "Verifying your Google account…");
         try {
-          const googleResponse = await fetch(apiUrl("/api/v1/auth/google"), {
+          const googleResponse = await fetch(apiUrl("/api/v1/auth/google/callback"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: credential })

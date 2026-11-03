@@ -46,13 +46,6 @@
           <div class="auth-divider"><span>or continue with</span></div>
           <div id="googleButton" class="google-button"></div>
           <p id="googleMessage" class="helper-text auth-helper">Google sign-in can also create your account if you are new.</p>
-          <label class="api-origin-label" for="apiOrigin">Backend API origin
-            <input id="apiOrigin" inputmode="url" placeholder="Same origin or http://127.0.0.1:5000">
-          </label>
-          <div class="api-origin-actions">
-            <button id="saveApiOrigin" class="button button-quiet" type="button">Use API origin</button>
-            <button id="signOut" class="button button-quiet" type="button" hidden>Clear saved token</button>
-          </div>
           <details class="token-details">
             <summary>Or paste an access token</summary>
             <label class="token-label" for="accessToken">JWT access token</label>
@@ -60,6 +53,7 @@
               <input id="accessToken" type="password" autocomplete="off" placeholder="Paste accessToken from login response">
               <button id="applyToken" class="button button-secondary" type="button">Use token</button>
             </div>
+            <button id="signOut" class="button button-quiet clear-token" type="button" hidden>Clear saved token</button>
           </details>
           <p id="authMessage" class="form-message" aria-live="polite"></p>
         </section>

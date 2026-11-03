@@ -75,9 +75,7 @@ input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgb
 .auth-divider::before, .auth-divider::after { height: 1px; flex: 1; background: var(--border); content: ""; }
 .google-button { min-height: 40px; display: flex; justify-content: center; }
 .auth-helper { margin: 7px 0 13px; font-size: 10px; }
-.api-origin-label { margin-top: 10px; }
-.api-origin-actions { display: flex; gap: 8px; margin-top: 8px; }
-.api-origin-actions .button { flex: 1; }
+.clear-token { margin-top: 8px; }
 .tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--border); }
 .tab { display: flex; align-items: center; gap: 9px; border: 0; border-bottom: 2px solid transparent; padding: 14px 14px 13px; color: var(--muted); background: transparent; cursor: pointer; font-size: 12px; font-weight: 700; }
 .tab.active { border-bottom-color: var(--accent); color: var(--text); }

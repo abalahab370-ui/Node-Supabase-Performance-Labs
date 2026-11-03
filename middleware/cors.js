@@ -1,5 +1,5 @@
 const allowedOrigins = new Set(
-  (process.env.CORS_ORIGINS || "http://localhost:5501,http://127.0.0.1:5501")
+  (process.env.CORS_ORIGINS || "http://localhost:5501,http://127.0.0.1:5501,http://localhost:5000")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean)
@@ -14,6 +14,7 @@ const cors = (req, res, next) => {
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true"); // Crucial if sending credentials/cookies
   }
 
   if (req.method === "OPTIONS") {

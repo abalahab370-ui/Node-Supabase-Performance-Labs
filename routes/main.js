@@ -13,7 +13,7 @@ router.get("/google/config", (req, res) => {
 
 router.post("/register", registerHandler);
 router.post("/login", loginHandler);
-router.post("/google", googleOauth2Handler);
+router.post("/google/callback", googleOauth2Handler);
 router.post("/refresh", refreshToken);
 router.post("/logout", logoutHandler);
 
