@@ -1,4 +1,4 @@
-const {pool} = require('../../config/db'); // Your PostgreSQL connection pool
+const { pool } = require('../../config/dbConnection'); // Your PostgreSQL connection pool
 
 async function reserveItem(req, res) {
     const startTime = process.hrtime();
@@ -16,6 +16,18 @@ async function reserveItem(req, res) {
 
         // 1. BEGIN TRANSACTION
         await client.query('BEGIN');
+
+        // 1.5. Verify that the user exists in the user table (checking against primary key 'id')
+        const userCheckQuery = `SELECT id FROM "user" WHERE id = $1;`;
+        const userCheckResult = await client.query(userCheckQuery, [userId]);
+
+        if (userCheckResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({
+                success: false,
+                error: `User with ID '${userId}' not found in the database.`
+            });
+        }
 
         // 2. Lock the specific inventory row using FOR UPDATE to prevent race conditions
         const lockQuery = `
@@ -83,6 +95,7 @@ async function reserveItem(req, res) {
                 strategy: 'ACID Transaction + Row-Level Exclusive Locking (FOR UPDATE)',
                 executedQueries: [
                     'BEGIN TRANSACTION',
+                    'SELECT id FROM "user" WHERE id = $1 (User Validation)',
                     'SELECT ... FOR UPDATE (Row Lock Acquired)',
                     'UPDATE inventory SET reserved_stock ...',
                     'INSERT INTO reservation ...',

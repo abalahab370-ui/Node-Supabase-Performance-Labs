@@ -15,5 +15,13 @@ const pool = new pg.Pool ( {
 const query = async  ( text , params ) => {
       return await pool.query(text , params) ;
 }
-
+const testConnection = async () => {
+      try {
+            const result = await query (`SELECT NOW()`) ; // test the connection to the database
+            console.log('Database connection test passed:', result.rows[0]);
+      } catch (error) {
+            console.error('Error testing database connection:', error);
+      }
+}
+testConnection() ; // test the connection to the database
 module.exports = { pool , query }  ;
