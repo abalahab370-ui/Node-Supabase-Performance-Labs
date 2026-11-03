@@ -25,6 +25,7 @@ const ui = {
   reservationTab: byId("reservationTab"),
   searchPanel: byId("searchPanel"),
   reservationPanel: byId("reservationPanel"),
+  conceptNavigator: byId("conceptNavigator"),
   searchForm: byId("searchForm"),
   searchQuery: byId("searchQuery"),
   searchLimit: byId("searchLimit"),
@@ -291,6 +292,26 @@ ui.searchForm.addEventListener("submit", (event) => {
   state.search.limit = Number(ui.searchLimit.value);
   state.search.offset = 0;
   fetchSearchPage();
+});
+ui.conceptNavigator.addEventListener("click", (event) => {
+  const chip = event.target.closest("button[data-search-query]");
+  if (!chip) return;
+
+  ui.conceptNavigator.querySelectorAll(".concept-chip").forEach((conceptChip) => {
+    const isActive = conceptChip === chip;
+    conceptChip.classList.toggle("active", isActive);
+    conceptChip.setAttribute("aria-pressed", String(isActive));
+  });
+  ui.searchQuery.value = chip.dataset.searchQuery;
+  ui.searchLimit.value = "10";
+  ui.searchForm.requestSubmit();
+});
+ui.searchQuery.addEventListener("input", () => {
+  ui.conceptNavigator.querySelectorAll(".concept-chip").forEach((chip) => {
+    const isActive = chip.dataset.searchQuery === ui.searchQuery.value.trim();
+    chip.classList.toggle("active", isActive);
+    chip.setAttribute("aria-pressed", String(isActive));
+  });
 });
 ui.previousPage.addEventListener("click", () => {
   state.search.offset = Math.max(0, state.search.offset - state.search.limit);
