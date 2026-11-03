@@ -7,6 +7,10 @@ const googleOauth2Handler = require("../controllers/googleOauth2/Oauth2Handler")
 const refreshToken = require("../controllers/refreshController");
 const logoutHandler = require("../controllers/logoutHandler");
 
+router.get("/google/config", (req, res) => {
+  res.json({ clientId: process.env.GOOGLE_CLIENT_ID || null });
+});
+
 router.post("/register", registerHandler);
 router.post("/login", loginHandler);
 router.post("/google", googleOauth2Handler);

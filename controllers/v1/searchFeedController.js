@@ -44,22 +44,46 @@ async function searchPosts(req, res) {
                     WHERE u.search_vector @@ plainto_tsquery('english', params.search_term)
                 ) combined
                 GROUP BY post_id
+            ),
+            RankedFeed AS (
+                SELECT
+                    p.post_id,
+                    p.title,
+                    p.body,
+                    u.full_name,
+                    f.relevance_score,
+                    p.created_at
+                FROM MatchedFeed f
+                JOIN posts p ON f.post_id = p.post_id
+                JOIN "user" u ON p.user_id = u.id
+            ),
+            Total AS (
+                SELECT COUNT(*) AS total_count
+                FROM RankedFeed
+            ),
+            Page AS (
+                SELECT *
+                FROM RankedFeed
+                ORDER BY relevance_score DESC, created_at DESC
+                LIMIT $2 OFFSET $3
             )
-            SELECT 
-                p.post_id, 
-                p.title, 
-                p.body, 
-                u.full_name,
-                f.relevance_score
-            FROM MatchedFeed f
-            JOIN posts p ON f.post_id = p.post_id
-            JOIN "user" u ON p.user_id = u.id
-            ORDER BY f.relevance_score DESC, p.created_at DESC
-            LIMIT $2 OFFSET $3;
+            SELECT
+                Total.total_count,
+                Page.post_id,
+                Page.title,
+                Page.body,
+                Page.full_name,
+                Page.relevance_score
+            FROM Total
+            LEFT JOIN Page ON TRUE;
         `;
 
         const queryParams = [searchTerm, limit, safeOffset];
         const { rows } = await query(rawQuery, queryParams);
+        const totalCount = Number(rows[0]?.total_count || 0);
+        const results = rows
+            .filter((row) => row.post_id !== null)
+            .map(({ total_count, ...post }) => post);
 
         // Calculate execution time for your diagnostic UI panel
         const elapsed = process.hrtime(startTime);
@@ -74,14 +98,16 @@ async function searchPosts(req, res) {
                 executionTimeMs: `${executionTimeMs} ms`,
                 strategy: 'PostgreSQL Stored Search Vectors + GIN Indexing + CTE Ranking',
                 executedQuery: cleanedQueryText,
+                totalCount,
                 validatedParams: {
                     searchTerm,
                     limit,
                     offset: safeOffset
                 }
             },
-            count: rows.length,
-            data: rows
+            count: results.length,
+            totalCount,
+            data: results
         });
 
     } catch (error) {

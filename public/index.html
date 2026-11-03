@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+  <title>Backend Diagnostic Lab</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Backend Diagnostic Lab home">
+        <span class="brand-mark">D</span>
+        <span class="brand-copy"><strong>Backend Diagnostic Lab</strong><small>Search · Pagination · Transactions</small></span>
+      </a>
+      <span class="server-status"><span class="status-dot"></span> API playground</span>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">NODE.JS · POSTGRESQL</p>
+          <h1>Test the backend.<br><span>See what happens.</span></h1>
+          <p class="intro-copy">A single workspace for full-text search, paginated results, and row-locking reservation requests.</p>
+        </div>
+        <section class="auth-card" aria-labelledby="auth-title">
+          <div class="section-heading compact">
+            <div><p class="eyebrow">PROTECTED API ACCESS</p><h2 id="auth-title">Connect a session</h2></div>
+            <span id="authState" class="pill">Token required</span>
+          </div>
+          <div class="auth-modes" role="tablist" aria-label="Authentication mode">
+            <button id="signInMode" class="auth-mode active" type="button" role="tab" aria-selected="true">Sign in</button>
+            <button id="registerMode" class="auth-mode" type="button" role="tab" aria-selected="false">Register</button>
+          </div>
+          <form id="loginForm" class="login-form">
+            <label>Full name
+              <input id="loginName" name="full_name" autocomplete="username" placeholder="Your account name" required>
+            </label>
+            <label>Password
+              <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+            </label>
+            <button id="credentialSubmit" class="button button-secondary" type="submit">Sign in</button>
+          </form>
+          <div class="auth-divider"><span>or continue with</span></div>
+          <div id="googleButton" class="google-button"></div>
+          <p id="googleMessage" class="helper-text auth-helper">Google sign-in can also create your account if you are new.</p>
+          <label class="api-origin-label" for="apiOrigin">Backend API origin
+            <input id="apiOrigin" inputmode="url" placeholder="Same origin or http://127.0.0.1:5000">
+          </label>
+          <div class="api-origin-actions">
+            <button id="saveApiOrigin" class="button button-quiet" type="button">Use API origin</button>
+            <button id="signOut" class="button button-quiet" type="button" hidden>Clear saved token</button>
+          </div>
+          <details class="token-details">
+            <summary>Or paste an access token</summary>
+            <label class="token-label" for="accessToken">JWT access token</label>
+            <div class="token-row">
+              <input id="accessToken" type="password" autocomplete="off" placeholder="Paste accessToken from login response">
+              <button id="applyToken" class="button button-secondary" type="button">Use token</button>
+            </div>
+          </details>
+          <p id="authMessage" class="form-message" aria-live="polite"></p>
+        </section>
+      </section>
+
+      <nav class="tabs" aria-label="Diagnostic modules" role="tablist">
+        <button class="tab active" id="searchTab" role="tab" aria-selected="true" aria-controls="searchPanel" type="button"><span class="tab-number">01</span> Search &amp; pagination</button>
+        <button class="tab" id="reservationTab" role="tab" aria-selected="false" aria-controls="reservationPanel" type="button"><span class="tab-number">02</span> Concurrency &amp; reservations</button>
+      </nav>
+
+      <section class="workspace">
+        <section id="searchPanel" class="module-panel" role="tabpanel" aria-labelledby="searchTab">
+          <div class="section-heading">
+            <div><p class="eyebrow">MODULE 01 / 02</p><h2>Full-text search</h2><p class="muted">Search posts and author names through the PostgreSQL search endpoint.</p></div>
+            <span class="pill">GIN · FTS · OFFSET</span>
+          </div>
+          <form id="searchForm" class="search-form">
+            <label class="search-input-label" for="searchQuery">Search terms</label>
+            <div class="search-controls">
+              <input id="searchQuery" name="q" placeholder="Try a topic, phrase, or author name">
+              <label class="limit-control">Page size
+                <select id="searchLimit"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option></select>
+              </label>
+              <button class="button button-primary" type="submit">Search</button>
+            </div>
+          </form>
+          <div class="metrics-row" aria-live="polite">
+            <div class="metric"><span class="metric-label">Total matches</span><strong id="searchTotal">—</strong></div>
+            <div class="metric"><span class="metric-label">Page</span><strong id="searchPage">—</strong></div>
+            <div class="metric"><span class="metric-label">Returned</span><strong id="searchReturned">—</strong></div>
+            <div class="metric"><span class="metric-label">Execution time</span><strong id="searchTime">—</strong></div>
+          </div>
+          <div id="searchMessage" class="notice" role="status">Connect with a valid access token to search.</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Post</th><th>Author</th><th>Relevance</th></tr></thead>
+              <tbody id="searchResults"><tr><td class="empty-cell" colspan="3">Search results will appear here.</td></tr></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span id="pageSummary" class="muted">No search has been run.</span>
+            <div class="pagination-actions">
+              <button id="previousPage" class="button button-quiet" type="button" disabled>← Previous</button>
+              <button id="nextPage" class="button button-quiet" type="button" disabled>Next →</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="reservationPanel" class="module-panel" role="tabpanel" aria-labelledby="reservationTab" hidden>
+          <div class="section-heading">
+            <div><p class="eyebrow">MODULE 03 / 04</p><h2>Reservation stress test</h2><p class="muted">Send parallel requests and observe stock checks and row-level transaction locking.</p></div>
+            <span class="pill">ACID · FOR UPDATE</span>
+          </div>
+          <form id="reservationForm" class="reservation-form">
+            <label>Inventory item ID<input id="itemId" value="item-001" required></label>
+            <label>Quantity per request<input id="quantity" type="number" value="1" min="1" step="1" required></label>
+            <label>Concurrent users
+              <select id="batchSize"><option value="1">1 user</option><option value="2">2 users</option><option value="3">3 users</option><option value="4">4 users</option><option value="5" selected>5 users</option></select>
+            </label>
+            <button id="runBenchmark" class="button button-primary" type="submit">Run parallel requests</button>
+          </form>
+          <p class="helper-text">Requests use user IDs <code>usr_1</code> through <code>usr_n</code>. These IDs must exist in your database. A valid access token is required.</p>
+          <div id="reservationMessage" class="notice" role="status">Connect with a valid access token before running the test.</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>User ID</th><th>HTTP status</th><th>Outcome</th><th>DB time</th></tr></thead>
+              <tbody id="reservationResults"><tr><td class="empty-cell" colspan="4">Reservation results will appear here.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="inspector">
+        <div class="section-heading">
+          <div><p class="eyebrow">RESPONSE INSPECTOR</p><h2>Diagnostic metadata</h2></div>
+          <span id="inspectorLabel" class="pill">Waiting for a request</span>
+        </div>
+        <pre id="metadata" tabindex="0">{ "message": "Run a search or reservation test to inspect server metadata." }</pre>
+      </section>
+    </main>
+    <footer>Requests are sent to this server using same-origin <code>/api/v1/...</code> URLs.</footer>
+  </div>
+</body>
+</html>
